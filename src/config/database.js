@@ -5,8 +5,8 @@ const connectDB = async () => {
     await mongoose.connect(process.env.MONGODB_URI);
     console.log('MongoDB Connected...');
   } catch (err) {
-    console.error(err.message);
-    process.exit(1);
+    console.error('MongoDB Connection Error:', err.message);
+    // Jangan pakai process.exit(1) di sini agar Vercel tidak crash
   }
 };
 
