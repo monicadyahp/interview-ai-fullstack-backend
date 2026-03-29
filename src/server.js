@@ -19,3 +19,6 @@ app.use('/api', apiRoutes);
 
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => console.log(`Fullstack Server started on port ${PORT}`));
+
+// Tambahkan ini di baris paling bawah server.js
+module.exports = app;
