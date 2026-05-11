@@ -1,12 +1,16 @@
 const mongoose = require('mongoose');
+const env = require('./env');
+
+const sanitizedUri = () => env.MONGO_URI.replace(/\/\/[^@]+@/, '//***:***@');
 
 const connectDB = async () => {
   try {
-    await mongoose.connect(process.env.MONGODB_URI);
-    console.log('MongoDB Connected...');
+    mongoose.set('strictQuery', true);
+    await mongoose.connect(env.MONGO_URI);
+    console.log(`[db] connected: ${sanitizedUri()}`);
   } catch (err) {
-    console.error('MongoDB Connection Error:', err.message);
-    // Jangan pakai process.exit(1) di sini agar Vercel tidak crash
+    console.error('[db] connection error:', err.message);
+    throw err;
   }
 };
 

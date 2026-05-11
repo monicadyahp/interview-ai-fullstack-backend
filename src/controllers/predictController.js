@@ -1,24 +1,20 @@
-const axios = require('axios');
-const FormData = require('form-data');
+const asyncHandler = require('../utils/asyncHandler');
+const predictService = require('../services/PredictService');
 
-exports.processPrediction = async (req, res) => {
-    try {
-        if (!req.file) {
-            return res.status(400).json({ message: "File tidak ditemukan" });
-        }
+const predict = asyncHandler(async (req, res) => {
+  const result = await predictService.predictEmotion(req.file);
+  res.status(200).json({
+    message: 'Prediksi emosi berhasil',
+    data: result,
+  });
+});
 
-        const formData = new FormData();
-        formData.append('file', req.file.buffer, { filename: 'frame.jpg' });
+const health = asyncHandler(async (req, res) => {
+  const result = await predictService.healthCheck();
+  res.status(200).json({
+    message: 'Layanan emotion detection aktif',
+    data: result,
+  });
+});
 
-        // Tembak ke FastAPI (Python)
-        const aiResponse = await axios.post(`${process.env.FASTAPI_URL}/predict`, formData, {
-            headers: { ...formData.getHeaders() }
-        });
-
-        // Kirim hasil AI ke Frontend (React)
-        res.json(aiResponse.data); 
-    } catch (error) {
-        console.error("Predict Error:", error.message);
-        res.status(500).json({ message: "Gagal memproses prediksi AI" });
-    }
-};
+module.exports = { predict, health };

@@ -1,0 +1,8 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(node -e \"require\\('./src/server.js'\\); setTimeout\\(\\(\\)=>{ console.log\\('BOOT_OK'\\); process.exit\\(0\\); }, 1500\\);\")",
+      "Bash(node -e \"require\\('./src/server.js'\\); setTimeout\\(\\(\\)=>{ console.log\\('BOOT_OK'\\); process.exit\\(0\\); }, 2500\\);\")"
+    ]
+  }
+}
