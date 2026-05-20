@@ -2,7 +2,14 @@
   "permissions": {
     "allow": [
       "Bash(node -e \"require\\('./src/server.js'\\); setTimeout\\(\\(\\)=>{ console.log\\('BOOT_OK'\\); process.exit\\(0\\); }, 1500\\);\")",
-      "Bash(node -e \"require\\('./src/server.js'\\); setTimeout\\(\\(\\)=>{ console.log\\('BOOT_OK'\\); process.exit\\(0\\); }, 2500\\);\")"
+      "Bash(node -e \"require\\('./src/server.js'\\); setTimeout\\(\\(\\)=>{ console.log\\('BOOT_OK'\\); process.exit\\(0\\); }, 2500\\);\")",
+      "Bash(node --input-type=module --eval \"import './src/server.js'\")",
+      "Bash(timeout 8 node \"c:\\\\laragon\\\\www\\\\Dicoding_Capstone_Project\\\\Dicoding_Capstone_BE\\\\interview-ai-fullstack-backend\\\\src\\\\server.js\")",
+      "Bash(SECRET_KEY=test node --check src/server.js)",
+      "PowerShell(cd \"c:\\\\laragon\\\\www\\\\Dicoding_Capstone_Project\\\\Dicoding_Capstone_BE\\\\interview-ai-fullstack-backend\"; $env:SECRET_KEY = \"test123\"; node --check src/server.js 2>&1)",
+      "PowerShell(cd \"c:\\\\laragon\\\\www\\\\Dicoding_Capstone_Project\\\\Dicoding_Capstone_BE\\\\interview-ai-fullstack-backend\"; $env:SECRET_KEY = \"test-secret-key-for-check\"; $proc = Start-Process node -ArgumentList \"src/server.js\" -PassThru -NoNewWindow -RedirectStandardOutput \"$env:TEMP\\\\server_out.txt\" -RedirectStandardError \"$env:TEMP\\\\server_err.txt\"; Start-Sleep -Seconds 4; $proc.Kill\\(\\); Get-Content \"$env:TEMP\\\\server_out.txt\", \"$env:TEMP\\\\server_err.txt\" -ErrorAction SilentlyContinue)",
+      "PowerShell(cd \"c:\\\\laragon\\\\www\\\\Dicoding_Capstone_Project\\\\Dicoding_Capstone_BE\\\\interview-ai-fullstack-backend\"; $proc = Start-Process node -ArgumentList \"src/server.js\" -PassThru -NoNewWindow -RedirectStandardOutput \"$env:TEMP\\\\server_out.txt\" -RedirectStandardError \"$env:TEMP\\\\server_err.txt\"; Start-Sleep -Seconds 4; $proc.Kill\\(\\); Get-Content \"$env:TEMP\\\\server_out.txt\", \"$env:TEMP\\\\server_err.txt\" -ErrorAction SilentlyContinue)",
+      "PowerShell(cd \"c:\\\\laragon\\\\www\\\\Dicoding_Capstone_Project\\\\Dicoding_Capstone_BE\\\\interview-ai-fullstack-backend\"; $proc = Start-Process node -ArgumentList \"src/server.js\" -PassThru -NoNewWindow -RedirectStandardOutput \"$env:TEMP\\\\sv_out.txt\" -RedirectStandardError \"$env:TEMP\\\\sv_err.txt\"; Start-Sleep -Seconds 5; $proc.Kill\\(\\); $out = Get-Content \"$env:TEMP\\\\sv_out.txt\" -ErrorAction SilentlyContinue; $err = Get-Content \"$env:TEMP\\\\sv_err.txt\" -ErrorAction SilentlyContinue; Write-Output \"=== STDOUT ===\"; $out; Write-Output \"=== STDERR ===\"; $err)"
     ]
   }
 }

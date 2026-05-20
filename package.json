@@ -4,23 +4,34 @@
   "main": "src/server.js",
   "scripts": {
     "start": "node src/server.js",
-    "dev": "node --watch src/server.js",
+    "start:dev": "nodemon src/server.js",
+    "build": "esbuild src/server.js --bundle --platform=node --format=esm --outdir=dist --packages=external",
+    "predb": "node -e \"require('fs').mkdirSync('./data/db',{recursive:true})\"",
+    "db": "mongod --bind_ip 127.0.0.1 --port 27017 --dbpath ./data/db",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
+  "type": "module",
   "description": "Intersight - Interview Emotion Detection Backend (clean architecture)",
   "dependencies": {
     "@types/multer": "^2.0.0",
+    "apple-signin-auth": "^2.0.0",
     "bcrypt": "^6.0.0",
     "body-parser": "^2.2.0",
     "cors": "^2.8.5",
     "dotenv": "^17.2.2",
     "express": "^5.1.0",
+    "google-auth-library": "^10.6.2",
     "jsonwebtoken": "^9.0.2",
     "mongoose": "^8.18.1",
     "multer": "^2.0.2",
-    "zod": "^4.1.9"
+    "nanoid": "^5.1.11",
+    "zod": "^4.4.3"
+  },
+  "devDependencies": {
+    "esbuild": "^0.28.0",
+    "nodemon": "^3.1.14"
   }
 }

@@ -1,5 +1,5 @@
-const ApiError = require('../utils/ApiError');
-const env = require('../config/env');
+import ApiError from '../utils/ApiError.js';
+import env from '../config/env.js';
 
 // eslint-disable-next-line no-unused-vars
 const errorHandler = (err, req, res, next) => {
@@ -13,10 +13,7 @@ const errorHandler = (err, req, res, next) => {
   if (err?.name === 'ValidationError') {
     return res.status(400).json({
       message: 'Data tidak valid',
-      errors: Object.values(err.errors || {}).map((e) => ({
-        path: e.path,
-        message: e.message,
-      })),
+      errors: Object.values(err.errors || {}).map((e) => ({ path: e.path, message: e.message })),
     });
   }
 
@@ -36,4 +33,4 @@ const errorHandler = (err, req, res, next) => {
   });
 };
 
-module.exports = errorHandler;
+export default errorHandler;

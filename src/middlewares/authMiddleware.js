@@ -1,5 +1,5 @@
-const jwtUtil = require('../utils/jwt');
-const ApiError = require('../utils/ApiError');
+import jwtUtil from '../utils/jwt.js';
+import ApiError from '../utils/ApiError.js';
 
 const authMiddleware = (req, res, next) => {
   const header = req.headers.authorization || req.headers.Authorization;
@@ -9,9 +9,7 @@ const authMiddleware = (req, res, next) => {
   }
 
   const token = header.slice(7).trim();
-  if (!token) {
-    return next(ApiError.unauthorized('Token autentikasi kosong'));
-  }
+  if (!token) return next(ApiError.unauthorized('Token autentikasi kosong'));
 
   try {
     const decoded = jwtUtil.verify(token);
@@ -25,4 +23,4 @@ const authMiddleware = (req, res, next) => {
   }
 };
 
-module.exports = authMiddleware;
+export default authMiddleware;

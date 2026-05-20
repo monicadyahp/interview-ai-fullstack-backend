@@ -1,5 +1,5 @@
-const multer = require('multer');
-const ApiError = require('../utils/ApiError');
+import multer from 'multer';
+import ApiError from '../utils/ApiError.js';
 
 const upload = multer({
   storage: multer.memoryStorage(),
@@ -12,4 +12,4 @@ const upload = multer({
   },
 });
 
-module.exports = upload;
+export default upload;

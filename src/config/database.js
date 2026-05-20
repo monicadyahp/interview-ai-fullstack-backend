@@ -1,17 +1,13 @@
-const mongoose = require('mongoose');
-const env = require('./env');
+import mongoose from 'mongoose';
+import env from './env.js';
 
-const sanitizedUri = () => env.MONGO_URI.replace(/\/\/[^@]+@/, '//***:***@');
+export const connectDB = async () => {
+  await mongoose.connect(env.MONGO_URI);
+  console.log('[db] connected:', env.MONGO_URI);
 
-const connectDB = async () => {
-  try {
-    mongoose.set('strictQuery', true);
-    await mongoose.connect(env.MONGO_URI);
-    console.log(`[db] connected: ${sanitizedUri()}`);
-  } catch (err) {
-    console.error('[db] connection error:', err.message);
-    throw err;
-  }
+  mongoose.connection.on('close', () => console.log('[db] disconnected'));
+  mongoose.connection.on('error', (err) => {
+    console.error('[db] error:', err);
+    process.exit(1);
+  });
 };
-
-module.exports = connectDB;
