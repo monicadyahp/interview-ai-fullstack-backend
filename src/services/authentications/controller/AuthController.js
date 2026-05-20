@@ -16,14 +16,15 @@ const handleError = (res, error) => {
   });
 };
 
+const bearerToken = (token) => `Bearer ${token}`;
+
 // POST /api/auth/register
 export const register = async (req, res) => {
   try {
-    const { token, user } = await authService.register(req.body);
+    const { user } = await authService.register(req.body);
     return res.status(201).json({
       status: 'success',
-      message: 'Registrasi berhasil',
-      token,
+      message: 'Registrasi berhasil. Silakan login untuk melanjutkan.',
       user,
     });
   } catch (error) {
@@ -38,7 +39,7 @@ export const login = async (req, res) => {
     return res.status(200).json({
       status: 'success',
       message: 'Login berhasil',
-      token,
+      token: bearerToken(token),
       user,
     });
   } catch (error) {
@@ -54,7 +55,7 @@ export const loginWithGoogle = async (req, res) => {
     return res.status(200).json({
       status: 'success',
       message: 'Login dengan Google berhasil',
-      token: result.token,
+      token: bearerToken(result.token),
       user: result.user,
     });
   } catch (error) {
@@ -70,7 +71,7 @@ export const loginWithFacebook = async (req, res) => {
     return res.status(200).json({
       status: 'success',
       message: 'Login dengan Facebook berhasil',
-      token: result.token,
+      token: bearerToken(result.token),
       user: result.user,
     });
   } catch (error) {
@@ -86,7 +87,7 @@ export const loginWithApple = async (req, res) => {
     return res.status(200).json({
       status: 'success',
       message: 'Login dengan Apple berhasil',
-      token: result.token,
+      token: bearerToken(result.token),
       user: result.user,
     });
   } catch (error) {

@@ -2,8 +2,8 @@ import { Types } from 'mongoose';
 import InterviewSession from '../model/InterviewSession.js';
 
 class InterviewRepository {
-  create(userId) {
-    return InterviewSession.create({ userId, startedAt: new Date() });
+  create(userId, missionData = {}) {
+    return InterviewSession.create({ userId, startedAt: new Date(), ...missionData });
   }
 
   findById(id) {
@@ -118,6 +118,29 @@ class InterviewRepository {
     const uid = new Types.ObjectId(userId);
     const result = await InterviewSession.aggregate([
       { $match: { userId: uid, status: 'completed' } },
+      { $unwind: '$predictions' },
+      {
+        $group: {
+          _id: null,
+          total:         { $sum: 1 },
+          happy:         { $sum: { $cond: [{ $eq: ['$predictions.emotion', 'happy']   }, 1, 0] } },
+          sad:           { $sum: { $cond: [{ $eq: ['$predictions.emotion', 'sad']     }, 1, 0] } },
+          normal:        { $sum: { $cond: [{ $eq: ['$predictions.emotion', 'normal']  }, 1, 0] } },
+          fear:          { $sum: { $cond: [{ $eq: ['$predictions.emotion', 'fear']    }, 1, 0] } },
+          angry:         { $sum: { $cond: [{ $eq: ['$predictions.emotion', 'angry']   }, 1, 0] } },
+          disgust:       { $sum: { $cond: [{ $eq: ['$predictions.emotion', 'disgust'] }, 1, 0] } },
+          avgConfidence: { $avg: '$predictions.confidencePercent' },
+        },
+      },
+    ]);
+    return result[0] ?? null;
+  }
+
+  // Agregasi emosi untuk SATU sesi spesifik
+  async getSessionEmotionSummary(sessionId) {
+    const sid = new Types.ObjectId(sessionId);
+    const result = await InterviewSession.aggregate([
+      { $match: { _id: sid } },
       { $unwind: '$predictions' },
       {
         $group: {

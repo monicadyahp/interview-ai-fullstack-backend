@@ -13,14 +13,39 @@ const handleError = (res, error) => {
   return res.status(500).json({ status: 'error', message: 'Terjadi kesalahan pada server' });
 };
 
+// GET /api/interviews/pre-launch
+export const getPreLaunchInfo = async (req, res) => {
+  try {
+    const data = await interviewService.getPreLaunchInfo(req.user.id);
+    return res.status(200).json({ status: 'success', data });
+  } catch (error) { return handleError(res, error); }
+};
+
+// POST /api/interviews/validate-launch
+export const validateLaunch = async (req, res) => {
+  try {
+    const result = await interviewService.validateLaunch(req.body);
+    const httpStatus = result.valid ? 200 : 422;
+    return res.status(httpStatus).json({ status: result.valid ? 'success' : 'fail', ...result });
+  } catch (error) { return handleError(res, error); }
+};
+
 // POST /api/interviews/sessions
 export const startSession = async (req, res) => {
   try {
-    const session = await interviewService.startSession(req.user.id);
+    const session = await interviewService.startSession(req.user.id, req.body);
     return res.status(201).json({
       status: 'success',
       message: 'Sesi interview dimulai',
-      data: { sessionId: session._id, startedAt: session.startedAt },
+      data: {
+        sessionId:      session._id,
+        positionApplied: session.positionApplied,
+        employmentLevel: session.employmentLevel,
+        companyType:     session.companyType,
+        simulationLevel: session.simulationLevel,
+        durationMinutes: session.durationMinutes,
+        startedAt:       session.startedAt,
+      },
     });
   } catch (error) { return handleError(res, error); }
 };
@@ -75,6 +100,28 @@ export const getSessionById = async (req, res) => {
   try {
     const session = await interviewService.getSessionById(req.params.id, req.user.id);
     return res.status(200).json({ status: 'success', data: session });
+  } catch (error) { return handleError(res, error); }
+};
+
+// GET /api/interviews/sessions/:id/summary
+export const getSessionSummary = async (req, res) => {
+  try {
+    const data = await interviewService.getSessionSummary(req.params.id, req.user.id);
+    return res.status(200).json({ status: 'success', data });
+  } catch (error) { return handleError(res, error); }
+};
+
+// GET /api/interviews/sessions/:id/export
+export const exportSession = async (req, res) => {
+  try {
+    const pdfBuffer = await interviewService.exportSessionPDF(req.params.id, req.user.id);
+    const filename = `intersight-session-${req.params.id}.pdf`;
+    res.set({
+      'Content-Type':        'application/pdf',
+      'Content-Disposition': `attachment; filename="${filename}"`,
+      'Content-Length':      pdfBuffer.length,
+    });
+    return res.send(pdfBuffer);
   } catch (error) { return handleError(res, error); }
 };
 
