@@ -1,0 +1,25 @@
+# Dependencies
+node_modules/
+
+*.package-lock.json
+
+fullstack-backend.zip
+
+history.db
+
+.env
+
+.claude
+
+# Debug logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# OS Files (Opsional tapi bagus)
+.DS_Store
+Thumbs.db
+
+# Folder build (Jika ada)
+dist/
+build/
