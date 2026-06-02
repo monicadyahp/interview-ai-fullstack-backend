@@ -1,6 +1,31 @@
 const User = require('../models/User');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
+const { OAuth2Client } = require('google-auth-library');
+
+const googleClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
+
+// Helper: rahasia & masa berlaku JWT diambil dari .env (SECRET_KEY)
+const JWT_SECRET = process.env.SECRET_KEY || 'secretkey';
+const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || '7d';
+
+// Helper: bentuk objek user yang dikirim ke frontend (selalu konsisten)
+const buildUserPayload = (user) => ({
+    id: user._id,
+    username: user.username,
+    email: user.email,
+    age: user.age,
+    profileImage: user.profileImage,
+    education: user.education,
+    bio: user.bio,
+    targetJob: user.targetJob,
+    linkedinUrl: user.linkedinUrl,
+    industry: user.industry,
+    country: user.country,
+    employmentLevel: user.employmentLevel,
+    preferenceCompany: user.preferenceCompany,
+    authProvider: user.authProvider,
+});
 
 exports.register = async (req, res) => {
     try {
@@ -13,7 +38,7 @@ exports.register = async (req, res) => {
         // Hash password
         const salt = await bcrypt.genSalt(10);
         user.password = await bcrypt.hash(password, salt);
-        
+
         await user.save();
         res.json({ msg: 'Registrasi berhasil, silakan login' });
     } catch (err) {
@@ -28,29 +53,65 @@ exports.login = async (req, res) => {
         const user = await User.findOne({ email });
         if (!user) return res.status(400).json({ msg: 'Email tidak ditemukan' });
 
+        // User Google tidak punya password lokal
+        if (!user.password) {
+            return res.status(400).json({ msg: 'Akun ini terdaftar via Google. Silakan login dengan Google.' });
+        }
+
         const isMatch = await bcrypt.compare(password, user.password);
         if (!isMatch) return res.status(400).json({ msg: 'Password salah' });
 
         // Buat Token JWT
-        const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET || 'secretkey', { expiresIn: '1d' });
-        // Ganti res.json di dalam exports.login dengan ini:
-        res.json({ 
-            token, 
-            user: { 
-                id: user._id, 
-                username: user.username, 
-                email: user.email,
-                // TAMBAHKAN SEMUA FIELD BERIKUT AGAR TIDAK HILANG SAAT LOGIN ULANG:
-                age: user.age,
-                profileImage: user.profileImage,
-                education: user.education,
-                bio: user.bio,
-                targetJob: user.targetJob,
-                linkedinUrl: user.linkedinUrl
-            } 
-        });
+        const token = jwt.sign({ id: user._id }, JWT_SECRET, { expiresIn: JWT_EXPIRES_IN });
+        res.json({ token, user: buildUserPayload(user) });
     } catch (err) {
         res.status(500).send('Server Error');
+    }
+};
+
+// Login / Register via Google (ID token / credential flow)
+exports.googleLogin = async (req, res) => {
+    try {
+        const { credential } = req.body;
+        if (!credential) {
+            return res.status(400).json({ msg: 'Credential Google tidak ditemukan' });
+        }
+
+        // Verifikasi ID token ke Google menggunakan Client ID (audience)
+        const ticket = await googleClient.verifyIdToken({
+            idToken: credential,
+            audience: process.env.GOOGLE_CLIENT_ID,
+        });
+        const payload = ticket.getPayload();
+        const { sub: googleId, email, name, picture } = payload;
+
+        if (!email) {
+            return res.status(400).json({ msg: 'Email Google tidak tersedia' });
+        }
+
+        // Cari user berdasarkan email, kalau belum ada buat baru
+        let user = await User.findOne({ email: email.toLowerCase() });
+        if (!user) {
+            user = new User({
+                username: name || email.split('@')[0],
+                email: email.toLowerCase(),
+                authProvider: 'google',
+                googleId,
+                profileImage: picture || undefined,
+            });
+            await user.save();
+        } else if (!user.googleId) {
+            // Tautkan akun lokal yang sudah ada dengan identitas Google-nya
+            user.googleId = googleId;
+            if (!user.profileImage && picture) user.profileImage = picture;
+            await user.save();
+        }
+
+        const token = jwt.sign({ id: user._id }, JWT_SECRET, { expiresIn: JWT_EXPIRES_IN });
+        res.json({ token, user: buildUserPayload(user) });
+    } catch (err) {
+        console.error('Google Login Error:', err.message);
+        res.status(401).json({ msg: 'Verifikasi Google gagal. Silakan coba lagi.' });
     }
 };
 
@@ -65,52 +126,45 @@ exports.getProfile = async (req, res) => {
 };
 
 // Update data profile
-// Tambahkan fungsi ini di authController.js
-// Update data profile di authController.js
-// Update data profile di authController.js
 exports.updateProfile = async (req, res) => {
     try {
-        // 1. Tangkap linkedinUrl dari req.body
-        const { username, age, education, profileImage, bio, targetJob, email, linkedinUrl } = req.body; // TAMBAHKAN linkedinUrl DI SINI
+        const {
+            username, age, education, profileImage, bio, targetJob, email, linkedinUrl,
+            industry, country, employmentLevel, preferenceCompany,
+        } = req.body;
 
         if (!email) {
             return res.status(400).json({ msg: 'Email wajib ada untuk sinkronisasi profil' });
         }
 
         const updatedUser = await User.findOneAndUpdate(
-            { email: email.toLowerCase() }, 
-            { 
-                $set: { 
-                    username, 
-                    age, 
-                    education, 
-                    profileImage, 
-                    bio, 
+            { email: email.toLowerCase() },
+            {
+                $set: {
+                    username,
+                    age,
+                    education,
+                    profileImage,
+                    bio,
                     targetJob,
-                    linkedinUrl // 2. SIMPAN KE DATABASE (TAMBAHKAN INI)
+                    linkedinUrl,
+                    industry,
+                    country,
+                    employmentLevel,
+                    preferenceCompany,
                 },
-                $setOnInsert: { password: 'google-login-user-' + Math.random() } 
+                // Saat profil disinkronkan dari sesi Google sebelum user terbuat,
+                // tandai sebagai akun google (password tidak wajib lagi di schema).
+                $setOnInsert: { authProvider: 'google' },
             },
             { returnDocument: 'after', upsert: true, runValidators: false }
         );
 
-        console.log("User tersinkronisasi:", updatedUser.email);
+        console.log('User tersinkronisasi:', updatedUser.email);
 
-        // Tambahkan isGoogle: true di dalam res.json fungsi updateProfile
-        res.json({
-            id: updatedUser._id,
-            username: updatedUser.username,
-            email: updatedUser.email,
-            age: updatedUser.age,
-            education: updatedUser.education,
-            profileImage: updatedUser.profileImage,
-            bio: updatedUser.bio,
-            targetJob: updatedUser.targetJob,
-            linkedinUrl: updatedUser.linkedinUrl,
-            isGoogle: true // <--- TAMBAHKAN INI
-        });
+        res.json(buildUserPayload(updatedUser));
     } catch (err) {
-        console.error("Error Upsert Profile:", err.message);
+        console.error('Error Upsert Profile:', err.message);
         res.status(500).json({ msg: 'Gagal sinkronisasi data profil.' });
     }
 };

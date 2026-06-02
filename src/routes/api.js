@@ -30,6 +30,7 @@ router.post('/chatbot', async (req, res) => {
 // Auth Routes
 router.post('/auth/register', authController.register);
 router.post('/auth/login', authController.login);
+router.post('/auth/google', authController.googleLogin);
 router.put('/auth/profile/:id', authController.updateProfile);
 
 // Interview & History Routes
