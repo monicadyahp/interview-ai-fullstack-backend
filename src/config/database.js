@@ -1,9 +1,9 @@
-const mongoose = require('mongoose');
-const dns = require('dns');
+const mongoose = require("mongoose");
+const dns = require("dns");
 
 // Force Google Public DNS to resolve MongoDB Atlas SRV records
 // Fixes: queryTxt ETIMEOUT cluster0.xxx.mongodb.net
-dns.setServers(['8.8.8.8', '8.8.4.4', '1.1.1.1']);
+// dns.setServers(['8.8.8.8', '8.8.4.4', '1.1.1.1']);
 
 const connectDB = async () => {
   try {
@@ -12,9 +12,9 @@ const connectDB = async () => {
       socketTimeoutMS: 45000,
       family: 4, // Force IPv4
     });
-    console.log('MongoDB Connected...');
+    console.log("MongoDB Connected...");
   } catch (err) {
-    console.error('MongoDB Connection Error:', err.message);
+    console.error("MongoDB Connection Error:", err.message);
   }
 };
 
