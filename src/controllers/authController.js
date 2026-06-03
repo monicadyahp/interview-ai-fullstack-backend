@@ -69,21 +69,33 @@ exports.login = async (req, res) => {
     }
 };
 
-// Login / Register via Google (ID token / credential flow)
+// Login / Register via Google (access token flow)
 exports.googleLogin = async (req, res) => {
     try {
-        const { credential } = req.body;
-        if (!credential) {
+        const { credential, accessToken } = req.body;
+        let googleId, email, name, picture;
+
+        if (credential) {
+            // Legacy ID token flow (kept for backwards compatibility)
+            const ticket = await googleClient.verifyIdToken({
+                idToken: credential,
+                audience: process.env.GOOGLE_CLIENT_ID,
+            });
+            const payload = ticket.getPayload();
+            ({ sub: googleId, email, name, picture } = payload);
+        } else if (req.body.googleUser) {
+            // User info fetched on the frontend (browser), passed directly
+            const { googleId: gId, email: gEmail, name: gName, picture: gPicture } = req.body.googleUser;
+            if (!gEmail) {
+                return res.status(400).json({ msg: 'Data akun Google tidak lengkap.' });
+            }
+            googleId = gId;
+            email = gEmail;
+            name = gName;
+            picture = gPicture;
+        } else {
             return res.status(400).json({ msg: 'Credential Google tidak ditemukan' });
         }
-
-        // Verifikasi ID token ke Google menggunakan Client ID (audience)
-        const ticket = await googleClient.verifyIdToken({
-            idToken: credential,
-            audience: process.env.GOOGLE_CLIENT_ID,
-        });
-        const payload = ticket.getPayload();
-        const { sub: googleId, email, name, picture } = payload;
 
         if (!email) {
             return res.status(400).json({ msg: 'Email Google tidak tersedia' });

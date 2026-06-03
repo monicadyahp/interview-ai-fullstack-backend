@@ -11,8 +11,12 @@ const HistorySchema = new mongoose.Schema({
     question: { type: String },
     duration: { type: Number },
     answer: { type: String },
+    // Posisi yang dilamar (diisi user di halaman Interview) + feedback sesi
+    positionApplied: { type: String },
+    feedbackNote: { type: String },
+    feedbackScore: { type: Number },
     // --- FIELD BARU UNTUK FOTO ---
-    userPhoto: { type: String }, 
+    userPhoto: { type: String },
     createdAt: { type: Date, default: Date.now }
 });
 
