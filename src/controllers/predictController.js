@@ -32,11 +32,9 @@ exports.processPrediction = async (req, res) => {
         .status(401)
         .json({ message: "API key tidak valid atau tidak dikirim" });
     if (status === 429)
-      return res
-        .status(429)
-        .json({
-          message: "Terlalu banyak request, perlambat pengiriman frame",
-        });
+      return res.status(429).json({
+        message: "Terlalu banyak request, perlambat pengiriman frame",
+      });
     console.error("Predict Error:", error.message);
     res.status(500).json({ message: "Gagal memproses prediksi AI, coba lagi" });
   }
