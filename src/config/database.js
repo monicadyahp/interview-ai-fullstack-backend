@@ -1,5 +1,5 @@
 const mongoose = require("mongoose");
-const dns = require("dns");
+// const dns = require("dns");
 
 // Force Google Public DNS to resolve MongoDB Atlas SRV records
 // Fixes: queryTxt ETIMEOUT cluster0.xxx.mongodb.net
